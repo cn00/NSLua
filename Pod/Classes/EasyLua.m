@@ -35,7 +35,10 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
         lua_newtable(L);
         
         ADDMETHOD(call);
+        ADDMETHOD(getmethod);
+        ADDMETHOD(getproperty);
         ADDMETHOD(getclass);
+        ADDMETHOD(classof);
         
         lua_setglobal(L, "objc");
         NSBundle *bundle = [NSBundle bundleForClass:[self class]];

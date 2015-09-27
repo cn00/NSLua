@@ -182,8 +182,52 @@ int luafunc_getclass(lua_State *L)
 {
     const char *classname = lua_tostring(L, -1);
     id cls = NSClassFromString([NSString stringWithUTF8String:classname]);
-    NSLog(@"Class: %s = %@", classname, cls);
-    lua_pushlightuserdata(L, (__bridge void *)(cls));
+    if (cls) {
+        NSLog(@"Class: %s = %@", classname, cls);
+        lua_pushlightuserdata(L, (__bridge void *)(cls));
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int luafunc_getmethod(lua_State *L)
+{
+    id target = from_lua(L, 1);
+    const char* message = luaL_checkstring(L, 2);
+    SEL sel = NSSelectorFromString([NSString stringWithUTF8String:message]);
+    
+    NSMethodSignature *sig = [target methodSignatureForSelector:sel];
+    if (sig) {
+        to_lua(L, sig, true);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int luafunc_getproperty(lua_State *L)
+{
+    id target = from_lua(L, 1);
+    const char* propname = luaL_checkstring(L, 2);
+    id r;
+    NSLog(@"Does %@  have a property called %s?", target, propname);
+    @try {
+        r = [target valueForKey:[NSString stringWithUTF8String:propname]];
+    }
+    @catch (NSException *exception) {
+        NSLog(@"%@ doesn't have a property called %s", target, propname);
+        return 0;
+    }
+    NSLog(@"Yes!");
+    to_lua(L, r, true);
+    return 1;
+}
+
+int luafunc_classof(lua_State *L)
+{
+    id target = from_lua(L, 1);
+    to_lua(L, NSStringFromClass([target class]), false);
     return 1;
 }
 
