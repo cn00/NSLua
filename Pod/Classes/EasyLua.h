@@ -31,5 +31,5 @@
 
 #pragma mark - Lua Access
 - (lua_State *)getLuaState;
-
+- (NSString *)getErrorBuffer;
 @end

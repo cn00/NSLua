@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #import "lua.h"
 
 #ifdef __cplusplus

@@ -18,7 +18,9 @@ lua_settable(L, -3))
 @implementation EasyLua
 {
     lua_State *L;
+    NSString *errorBuffer;
 }
+
 
 SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
 
@@ -36,7 +38,6 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
         ADDMETHOD(getclass);
         
         lua_setglobal(L, "objc");
-        
         NSBundle *bundle = [NSBundle bundleForClass:[self class]];
         NSString *path = [bundle pathForResource:@"LuaBridge" ofType:@"lua"];
         if (luaL_dofile(L, [path UTF8String]))
@@ -64,9 +65,11 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
 
 - (bool)runLuaFileAtPath:(NSString *)path
 {
+    errorBuffer = NULL;
 	if (luaL_dofile(L, [path UTF8String]))
 	{
 		const char *err = lua_tostring(L, -1);
+        errorBuffer = [NSString stringWithFormat:@"error while loading file %@: %s", path, err];
 		NSLog(@"error while loading file %@: %s", path, err);
 		return false;
 	}
@@ -76,17 +79,21 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
 
 - (bool)runLuaString:(NSString *)string
 {
-	if (luaL_loadstring(L, [string UTF8String]))
+    errorBuffer = NULL;
+    if (luaL_loadstring(L, [string UTF8String]))
 	{
 		const char *err = lua_tostring(L, -1);
-		NSLog(@"error while loading string %@: %s", string, err);
+        errorBuffer = [NSString stringWithFormat:@"error while compiling string %@: %s", string, err];
+        [self getErrorBuffer];
 		return false;
 	}
 
 	if (lua_pcall(L, 0, 0, 0))
 	{
 		const char *err = lua_tostring(L, -1);
-		NSLog(@"error while running string %@: %s", string, err);
+        errorBuffer = [NSString stringWithFormat:@"error while running string %@: %s", string, err];
+        [self getErrorBuffer];
+        NSLog(@"error while running string %@: %s", string, err);
 		return false;
 	}
 
@@ -161,6 +168,12 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
 - (lua_State *)getLuaState
 {
     return L;
+}
+
+- (NSString *)getErrorBuffer
+{
+    NSLog(@"Checking error buffer: %@", errorBuffer);
+    return errorBuffer;
 }
 
 

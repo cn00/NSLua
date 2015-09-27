@@ -10,7 +10,6 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
-#import <UIKit/UIGeometry.h>
 
 #define CNVBUF(type) type x = *(type*)buffer
 
@@ -182,7 +181,8 @@ id from_lua(lua_State *L, int i)
 int luafunc_getclass(lua_State *L)
 {
     const char *classname = lua_tostring(L, -1);
-    id cls = objc_getClass(classname);
+    id cls = NSClassFromString([NSString stringWithUTF8String:classname]);
+    NSLog(@"Class: %s = %@", classname, cls);
     lua_pushlightuserdata(L, (__bridge void *)(cls));
     return 1;
 }
@@ -208,11 +208,14 @@ int luafunc_call(lua_State *L)
     
     
     NSString *message = (NSString *)[stack lastObject];
+    NSLog(@"message was %@", message);
     [stack removeLastObject];
     id target = [stack lastObject];
+    NSLog(@"target was %@", target);
     [stack removeLastObject];
     
-    SEL sel = sel_getUid([message cStringUsingEncoding:NSUTF8StringEncoding]);
+    SEL sel = NSSelectorFromString(message);
+    
     NSMethodSignature *sig = [target methodSignatureForSelector:sel];
     NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
     [inv retainArguments];
@@ -333,25 +336,20 @@ int luafunc_call(lua_State *L)
             case '{': // {name=type...} A structure
             {
                 NSString *t_str = [NSString stringWithUTF8String:t];
-                if ([t_str hasPrefix:@"{CGRect"])
+                if ([t_str hasPrefix:@"{NSRect"])
                 {
-                    CGRect rect = [(NSValue *)arg CGRectValue];
+                    NSRect rect = [(NSValue *)arg rectValue];
                     [inv setArgument:&rect atIndex:i];
                 }
-                else if ([t_str hasPrefix:@"{CGSize"])
+                else if ([t_str hasPrefix:@"{NSSize"])
                 {
-                    CGSize size = [(NSValue *)arg CGSizeValue];
+                    NSSize size = [(NSValue *)arg sizeValue];
                     [inv setArgument:&size atIndex:i];
                 }
-                else if ([t_str hasPrefix:@"{CGPoint"])
+                else if ([t_str hasPrefix:@"{NSPoint"])
                 {
-                    CGPoint point = [(NSValue *)arg CGPointValue];
+                    NSPoint point = [(NSValue *)arg pointValue];
                     [inv setArgument:&point atIndex:i];
-                }
-                else if ([t_str hasPrefix:@"{CGAffineTransform"])
-                {
-                    CGAffineTransform tran = [(NSValue *)arg CGAffineTransformValue];
-                    [inv setArgument:&tran atIndex:i];
                 }
             }
                 break;
@@ -499,25 +497,20 @@ int luafunc_call(lua_State *L)
         {
             NSString *t = [NSString stringWithUTF8String:rettype];
             
-            if ([t hasPrefix:@"{CGRect"])
+            if ([t hasPrefix:@"{NSRect"])
             {
-                CGRect *rect = (CGRect *)buffer;
-                [stack addObject:[NSValue valueWithCGRect:*rect]];
+                NSRect *rect = (NSRect *)buffer;
+                [stack addObject:[NSValue valueWithRect:*rect]];
             }
-            else if ([t hasPrefix:@"{CGSize"])
+            else if ([t hasPrefix:@"{NSSize"])
             {
-                CGSize *size = (CGSize *)buffer;
-                [stack addObject:[NSValue valueWithCGSize:*size]];
+                NSSize *size = (NSSize *)buffer;
+                [stack addObject:[NSValue valueWithSize:*size]];
             }
             else if ([t hasPrefix:@"{CGPoint"])
             {
-                CGPoint *size = (CGPoint *)buffer;
-                [stack addObject:[NSValue valueWithCGPoint:*size]];
-            }
-            else if ([t hasPrefix:@"{CGAffineTransform"])
-            {
-                CGAffineTransform *tran = (CGAffineTransform *)buffer;
-                [stack addObject:[NSValue valueWithCGAffineTransform:*tran]];
+                NSPoint *size = (NSPoint *)buffer;
+                [stack addObject:[NSValue valueWithPoint:*size]];
             }
         }
             break;
@@ -537,7 +530,3 @@ int luafunc_call(lua_State *L)
     
     return 1;
 }
-
-
-
-
