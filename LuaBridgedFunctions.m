@@ -381,6 +381,7 @@ int luafunc_call(lua_State *L)
             }
                 break;
             case '@': // An object (whether statically typed or typed id)
+            case '#': // A class object (Class)
                 [inv setArgument:&arg atIndex:i];
                 break;
                 
@@ -419,7 +420,6 @@ int luafunc_call(lua_State *L)
                 break;
                 
             case 'v': // A void
-            case '#': // A class object (Class)
             case ':': // A method selector (SEL)
             default:
                 NSLog(@"%s: Not implemented", t);
@@ -531,6 +531,7 @@ int luafunc_call(lua_State *L)
         }
             break;
         case '@': // An object (whether statically typed or typed id)
+        case '#': // A class object (Class)
         {
             id x = (__bridge id)*((void **)buffer);
             //            NSLog(@"stack %@", stack);
@@ -579,7 +580,6 @@ int luafunc_call(lua_State *L)
         }
             break;
             
-        case '#': // A class object (Class)
         case ':': // A method selector (SEL)
         default:
             NSLog(@"%s: Not implemented", rettype);
