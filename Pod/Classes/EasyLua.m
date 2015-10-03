@@ -35,7 +35,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
         lua_newtable(L);
         
         ADDMETHOD(call);
-        ADDMETHOD(getmethod);
+        ADDMETHOD(hasmethod);
         ADDMETHOD(getproperty);
         ADDMETHOD(getclass);
         ADDMETHOD(classof);

@@ -13,7 +13,12 @@
 
 #define CNVBUF(type) type x = *(type*)buffer
 
-
+#define DEBUG_LUA_BRIDGE 1
+#ifdef DEBUG_LUA_BRIDGE
+#define DebugLog(...) NSLog(__VA_ARGS__)
+#else
+#define DebugLog(...)
+#endif
 
 #pragma mark - Helper Functions
 
@@ -41,6 +46,23 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
     else if ([obj isKindOfClass:[NSNull class]])
     {
         lua_pushnil(L);
+    }
+    else if ([obj isKindOfClass:[NSArray class]])
+    {
+        lua_newtable(L);
+        [obj enumerateObjectsUsingBlock:^(id object, NSUInteger idx, BOOL *stop) {
+            to_lua(L, object, true);
+            lua_rawseti(L,-2,(int)idx + 1);
+        }];
+    }
+    else if ([obj isKindOfClass:[NSDictionary class]])
+    {
+        lua_newtable(L);
+        [obj enumerateKeysAndObjectsUsingBlock: ^(id key, id obj, BOOL *stop) {
+            to_lua(L, key, false);
+            to_lua(L, obj, true);
+            lua_settable(L, -3);
+        }];
     }
     else
     {
@@ -183,7 +205,7 @@ int luafunc_getclass(lua_State *L)
     const char *classname = lua_tostring(L, -1);
     id cls = NSClassFromString([NSString stringWithUTF8String:classname]);
     if (cls) {
-        NSLog(@"Class: %s = %@", classname, cls);
+        DebugLog(@"Class: %s = %@", classname, cls);
         lua_pushlightuserdata(L, (__bridge void *)(cls));
         return 1;
     } else {
@@ -191,19 +213,15 @@ int luafunc_getclass(lua_State *L)
     }
 }
 
-int luafunc_getmethod(lua_State *L)
+int luafunc_hasmethod(lua_State *L)
 {
     id target = from_lua(L, 1);
     const char* message = luaL_checkstring(L, 2);
     SEL sel = NSSelectorFromString([NSString stringWithUTF8String:message]);
     
     NSMethodSignature *sig = [target methodSignatureForSelector:sel];
-    if (sig) {
-        to_lua(L, sig, true);
-        return 1;
-    } else {
-        return 0;
-    }
+    lua_pushboolean(L, sig ? TRUE : FALSE);
+    return 1;
 }
 
 int luafunc_getproperty(lua_State *L)
@@ -211,15 +229,15 @@ int luafunc_getproperty(lua_State *L)
     id target = from_lua(L, 1);
     const char* propname = luaL_checkstring(L, 2);
     id r;
-    NSLog(@"Does %@  have a property called %s?", target, propname);
+    DebugLog(@"Does %@  have a property called %s?", target, propname);
     @try {
         r = [target valueForKey:[NSString stringWithUTF8String:propname]];
     }
     @catch (NSException *exception) {
-        NSLog(@"%@ doesn't have a property called %s", target, propname);
+        DebugLog(@"%@ doesn't have a property called %s", target, propname);
         return 0;
     }
-    NSLog(@"Yes!");
+    DebugLog(@"Yes!");
     to_lua(L, r, true);
     return 1;
 }

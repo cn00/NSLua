@@ -32,6 +32,6 @@ int luafunc_call(lua_State *L);
 int luafunc_clear(lua_State *L);
 int luafunc_operate(lua_State *L);
 int luafunc_getclass(lua_State *L);
-int luafunc_getmethod(lua_State *L);
+int luafunc_hasmethod(lua_State *L);
 int luafunc_getproperty(lua_State *L);
 int luafunc_classof(lua_State *L);
