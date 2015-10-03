@@ -1,47 +1,36 @@
 NSLua
-======================
-NSLua is an easy to integrate and easy to use library for bridging Obj-C and Lua.
-Our goal was to make a library which is easy to call into lua and out
-to iOS with no knowlege required of how the lua c bridge worked. An emphesis was
-placed on also making the lua code readable when using objective-c classes
+=====
 
-No initialization is needed on the iOS side. Examples within objective-c:
+NSLua is an easy to integrate and easy to use library for bridging Obj-C and Lua.
+It was derived from EasyLua, by David Holtkamp at Crimson Moon Entertainment, which in turn was derived from Lua-Objective-C Bridge by Toru Hisai.
+
+How to use
+==========
+
+To use NSLua in your iOS or OS X application, you should drop the .h, .m and .lua files into your XCode project. You should also add a Lua source distribution as a directory into your Xcode project. (Xcode will build Lua by calling `make` on this directory. It just works.)
+
+Now to run a piece of Lua code:
 
     [[NSLua sharedNSLua] runLuaString:@"print(\"Hello World\")"];
     [[NSLua sharedNSLua] runLuaBundleFile:@"MyCode.lua"]
 
-All Objective-c classes in the binary are available for use in lua. Some Example lua code:
+All Objective C classes in the binary are available for use in Lua. Properties are available as properties, and methods are available as methods. Objective C methods which take multiple arguments should have their colons replaced with underscores. For example:
 
-    instance = MyClassName('alloc')('init')
-    instance('methodName:', 'param_1')
-    instance('methodName:param2name:', 'param_1', 'param_2')
+    fileurl = NSURL:fileURLWithPath_(path)
+    print(fileurl) # "<NSUrl>"
+    print(fileurl.absoluteString) # "file:///..."
 
-When calling methods, Lua stirngs are automatically converted into NSStrings and numebrs, if needed will be converted to NSNumbers. Additionally, NSObject are wrapped and unwrapped as needed when being sent between the two environments 
+    NSDocumentController.sharedDocumentController:openDocumentWithContentsOfURL_display_error_(fileurl, true, nil)
 
-Dictionaries can also be used similar to how they are used in Objective-C:
+Properties can be set in the usual way:
 
-    new_dict = NSMutableDictionary('alloc')('init')
-    new_dict['ReturnKey'] = 'ReturnValue'
+    lastPoint.x = 10
 
-Additionally, tables will be converted into either NSArrays or NSDictionaries when returned or called as parameters to an Objective-C method.
-
-
-NSLua was originally derived from Lua-Objective-C Bridge. Special thanks to the original author Toru Hisai!
-
-Current Limitations
-=======
-Currently, calling a method such as this will fail:
-
-	NSString('alloc')('init')
-
-This is because strings are converted into lua strings right away, so when you all init, it does not know what to do. This can be fixed in the future but should generally not be needed as you can simply use lua string.
-
+Data will be marshalled between Lua data types and their Objective C equivalents; arrays and dictionaries will be converted to tables and back again.
 
 License
 =======
-Copyright for portions of project NSLua held by Toru Hisai, 2015
-
-All Other Copyright for NSLua held by Crimson Moon Entertainment LLC, 2015
+Portions copyrighted by Toru Hisai, 2015 and Crimson Moon Entertainment LLC, 2015.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -63,6 +52,9 @@ THE SOFTWARE.
 
 Author
 ======
-NSLua: David Holtkamp david@crimson-moon.com
+
+NSLua: Simon Cozens simon@simon-cozens.org
+
+EasyLua: David Holtkamp david@crimson-moon.com
 
 Lua-Objective-C Bridge Author: Toru Hisai toru@torus.jp @torus 
