@@ -7,7 +7,7 @@
 //
 #import "CMSynthesizeSingleton.h"
 #import "LuaBridgedFunctions.h"
-#import "EasyLua.h"
+#import "NSLua.h"
 
 #define ADDMETHOD(name) \
 (lua_pushstring(L, #name), \
@@ -15,14 +15,14 @@ lua_pushcfunction(L, luafunc_ ## name), \
 lua_settable(L, -3))
 
 
-@implementation EasyLua
+@implementation NSLua
 {
     lua_State *L;
     NSString *errorBuffer;
 }
 
 
-SYNTHESIZE_SINGLETON_FOR_CLASS(EasyLua)
+SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
 
 #pragma mark - NSObject
 

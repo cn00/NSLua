@@ -13,9 +13,9 @@
 #include "lauxlib.h"
 
 
-@interface EasyLua : NSObject
+@interface NSLua : NSObject
 
-+ (EasyLua *)sharedEasyLua;
++ (NSLua *)sharedLua;
 
 #pragma mark - Load and Run Lua Code
 - (bool)runLuaBundleFile:(NSString *)fileName;

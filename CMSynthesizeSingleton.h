@@ -5,14 +5,14 @@
 #import <Foundation/Foundation.h>
 
 #ifndef SYNTHESIZE_SINGLETON_FOR_CLASS
-#define SYNTHESIZE_SINGLETON_FOR_CLASS(classname)                        \
+#define SYNTHESIZE_SINGLETON_FOR_CLASS(classname, predicatename)        \
 \
-__strong static classname * shared##classname = nil;    \
-+ (classname *)shared##classname {                      \
+__strong static classname * predicatename = nil;    \
++ (classname *)predicatename {                      \
 \
 static dispatch_once_t pred;                            \
 dispatch_once( &pred, ^{                                \
-shared##classname = [[self alloc] init]; });            \
-return shared##classname;                               \
+predicatename = [[self alloc] init]; });            \
+return predicatename;                               \
 }
 #endif

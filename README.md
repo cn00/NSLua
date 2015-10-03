@@ -1,14 +1,14 @@
-EasyLua
+NSLua
 ======================
-EasyLua is an easy to integrate and easy to use library for bridging Obj-C and Lua.
+NSLua is an easy to integrate and easy to use library for bridging Obj-C and Lua.
 Our goal was to make a library which is easy to call into lua and out
 to iOS with no knowlege required of how the lua c bridge worked. An emphesis was
 placed on also making the lua code readable when using objective-c classes
 
 No initialization is needed on the iOS side. Examples within objective-c:
 
-    [[EasyLua sharedEasyLua] runLuaString:@"print(\"Hello World\")"];
-    [[EasyLua sharedEasyLua] runLuaBundleFile:@"MyCode.lua"]
+    [[NSLua sharedNSLua] runLuaString:@"print(\"Hello World\")"];
+    [[NSLua sharedNSLua] runLuaBundleFile:@"MyCode.lua"]
 
 All Objective-c classes in the binary are available for use in lua. Some Example lua code:
 
@@ -26,7 +26,7 @@ Dictionaries can also be used similar to how they are used in Objective-C:
 Additionally, tables will be converted into either NSArrays or NSDictionaries when returned or called as parameters to an Objective-C method.
 
 
-EasyLua was originally derived from Lua-Objective-C Bridge. Special thanks to the original author Toru Hisai!
+NSLua was originally derived from Lua-Objective-C Bridge. Special thanks to the original author Toru Hisai!
 
 Current Limitations
 =======
@@ -39,9 +39,9 @@ This is because strings are converted into lua strings right away, so when you a
 
 License
 =======
-Copyright for portions of project EasyLua held by Toru Hisai, 2015
+Copyright for portions of project NSLua held by Toru Hisai, 2015
 
-All Other Copyright for EasyLua held by Crimson Moon Entertainment LLC, 2015
+All Other Copyright for NSLua held by Crimson Moon Entertainment LLC, 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -63,6 +63,6 @@ THE SOFTWARE.
 
 Author
 ======
-EasyLua: David Holtkamp david@crimson-moon.com
+NSLua: David Holtkamp david@crimson-moon.com
 
 Lua-Objective-C Bridge Author: Toru Hisai toru@torus.jp @torus 
