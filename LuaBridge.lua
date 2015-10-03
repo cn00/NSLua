@@ -53,8 +53,10 @@ local object_mt ={
     end
   end,
   __newindex =  function(inObject, inKey, inValue)
-    -- XXX
-    sendMesg(inObject["WrappedObject"], 'setValue:forKeyPath:', inValue, inKey)
+    if (objc.getproperty(unwrap(inObject), inKey)) then
+        return sendMesg(inObject["WrappedObject"], 'setValue:forKeyPath:', inValue, inKey)
+    end
+    rawset(inObject, inKey, inValue)
   end
 }
 
