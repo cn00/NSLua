@@ -44,13 +44,13 @@ local object_mt ={
   __index = function(inObject, inKey)
     local p = objc.getproperty(unwrap(inObject), inKey)
     if p then return p end
-    inKey = inKey:gsub(":","_")
+    inKey = inKey:gsub("_",":")
     p = objc.hasmethod(unwrap(inObject), inKey)
     if p then
       p = { name = inKey, target = inObject }
       setmetatable(p, method_mt)
+      return p
     end
-    return p
   end,
   __newindex =  function(inObject, inKey, inValue)
     -- XXX
