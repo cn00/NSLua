@@ -13,7 +13,7 @@
 
 #define CNVBUF(type) type x = *(type*)buffer
 
-#define DEBUG_LUA_BRIDGE 1
+#define DEBUG_LUA_BRIDGE 0
 #ifdef DEBUG_LUA_BRIDGE
 #define DebugLog(...) NSLog(__VA_ARGS__)
 #else
@@ -218,8 +218,10 @@ int luafunc_hasmethod(lua_State *L)
     id target = from_lua(L, 1);
     const char* message = luaL_checkstring(L, 2);
     SEL sel = NSSelectorFromString([NSString stringWithUTF8String:message]);
-    
+    DebugLog(@"Does %@  have a method called %s?", target, message);
+
     NSMethodSignature *sig = [target methodSignatureForSelector:sel];
+    DebugLog(sig ? @"Yes" : @"No");
     lua_pushboolean(L, sig ? TRUE : FALSE);
     return 1;
 }
