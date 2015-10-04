@@ -14,7 +14,7 @@
 #define CNVBUF(type) type x = *(type*)buffer
 
 #define DEBUG_LUA_BRIDGE 0
-#ifdef DEBUG_LUA_BRIDGE
+#if DEBUG_LUA_BRIDGE
 #define DebugLog(...) NSLog(__VA_ARGS__)
 #else
 #define DebugLog(...)
@@ -24,6 +24,7 @@
 
 bool to_lua(lua_State *L, id obj, bool dowrap)
 {
+    DebugLog(@"Sending %@ [%@] to Lua", obj, [obj class]);
     if (obj == nil)
     {
         lua_pushnil(L);
