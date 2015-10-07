@@ -20,6 +20,8 @@
 #define DebugLog(...)
 #endif
 
+#define IsNSValueType(o,t) (strcmp([o objCType], @encode(t)) == 0)
+
 #pragma mark - Helper Functions
 
 bool to_lua(lua_State *L, id obj, bool dowrap)
@@ -64,6 +66,49 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             to_lua(L, obj, true);
             lua_settable(L, -3);
         }];
+    }
+    else if ([obj isKindOfClass:[NSValue class]])
+    {
+        lua_getglobal(L, "wrap");
+        lua_pushlightuserdata(L, (__bridge void*)obj);
+        lua_pcall(L, 1, 1, 0); /* The thing is now on the stack */
+        if (IsNSValueType(obj, NSPoint)) {
+            lua_pushstring(L, "x");
+            lua_pushnumber(L, [obj pointValue].x);
+            lua_settable(L, -3);
+            lua_pushstring(L, "y");
+            lua_pushnumber(L, [obj pointValue].y);
+            lua_settable(L, -3);
+            lua_pushstring(L, "Class");
+            lua_pushstring(L, "NSPoint");
+            lua_settable(L, -3);
+        } else if (IsNSValueType(obj, NSRect)) {
+            lua_pushstring(L, "origin");
+            lua_newtable(L);
+            {
+                lua_pushstring(L, "x");
+                lua_pushnumber(L, [obj rectValue].origin.x);
+                lua_settable(L, -3);
+                lua_pushstring(L, "y");
+                lua_pushnumber(L, [obj rectValue].origin.y);
+                lua_settable(L, -3);
+            }
+            lua_settable(L, -3);
+            lua_pushstring(L, "size");
+            lua_newtable(L);
+            {
+                lua_pushstring(L, "width");
+                lua_pushnumber(L, [obj rectValue].size.width);
+                lua_settable(L, -3);
+                lua_pushstring(L, "height");
+                lua_pushnumber(L, [obj rectValue].size.height);
+                lua_settable(L, -3);
+            }
+            lua_settable(L, -3);
+            lua_pushstring(L, "Class");
+            lua_pushstring(L, "NSRect");
+            lua_settable(L, -3);
+        }
     }
     else
     {
