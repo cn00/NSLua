@@ -24,6 +24,11 @@
 
 #pragma mark - Helper Functions
 
+#define NSPoint CGPoint
+#define NSRect CGRect
+#define NSSize CGSize
+//#define NSValue CGValue
+
 bool to_lua(lua_State *L, id obj, bool dowrap)
 {
     DebugLog(@"Sending %@ [%@] to Lua", obj, [obj class]);
@@ -73,11 +78,12 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
         lua_pushlightuserdata(L, (__bridge void*)obj);
         lua_pcall(L, 1, 1, 0); /* The thing is now on the stack */
         if (IsNSValueType(obj, NSPoint)) {
+//            obj.pointValue.x
             lua_pushstring(L, "x");
-            lua_pushnumber(L, [obj pointValue].x);
+            lua_pushnumber(L, [obj CGPointValue].x);
             lua_settable(L, -3);
             lua_pushstring(L, "y");
-            lua_pushnumber(L, [obj pointValue].y);
+            lua_pushnumber(L, [obj CGPointValue].y);
             lua_settable(L, -3);
             lua_pushstring(L, "Class");
             lua_pushstring(L, "NSPoint");
@@ -87,10 +93,10 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             lua_newtable(L);
             {
                 lua_pushstring(L, "x");
-                lua_pushnumber(L, [obj rectValue].origin.x);
+                lua_pushnumber(L, [obj CGRectValue].origin.x);
                 lua_settable(L, -3);
                 lua_pushstring(L, "y");
-                lua_pushnumber(L, [obj rectValue].origin.y);
+                lua_pushnumber(L, [obj CGRectValue].origin.y);
                 lua_settable(L, -3);
             }
             lua_settable(L, -3);
@@ -98,10 +104,10 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             lua_newtable(L);
             {
                 lua_pushstring(L, "width");
-                lua_pushnumber(L, [obj rectValue].size.width);
+                lua_pushnumber(L, [obj CGRectValue].size.width);
                 lua_settable(L, -3);
                 lua_pushstring(L, "height");
-                lua_pushnumber(L, [obj rectValue].size.height);
+                lua_pushnumber(L, [obj CGRectValue].size.height);
                 lua_settable(L, -3);
             }
             lua_settable(L, -3);
@@ -278,13 +284,13 @@ int luafunc_getproperty(lua_State *L)
     const char* propname = luaL_checkstring(L, 2);
     id r;
     DebugLog(@"Does %@  have a property called %s?", target, propname);
-    @try {
+//    @try {
         r = [target valueForKey:[NSString stringWithUTF8String:propname]];
-    }
-    @catch (NSException *exception) {
-        DebugLog(@"%@ doesn't have a property called %s", target, propname);
-        return 0;
-    }
+//    }
+//    @catch (NSException *exception) {
+//        DebugLog(@"%@ doesn't have a property called %s", target, propname);
+//        return 0;
+//    }
     DebugLog(@"Yes!");
     to_lua(L, r, true);
     return 1;
@@ -449,17 +455,17 @@ int luafunc_call(lua_State *L)
                 NSString *t_str = [NSString stringWithUTF8String:t];
                 if ([t_str hasPrefix:@"{NSRect"])
                 {
-                    NSRect rect = [(NSValue *)arg rectValue];
+                    NSRect rect = [(NSValue *)arg CGRectValue];
                     [inv setArgument:&rect atIndex:i];
                 }
                 else if ([t_str hasPrefix:@"{NSSize"])
                 {
-                    NSSize size = [(NSValue *)arg sizeValue];
+                    NSSize size = [(NSValue *)arg CGSizeValue];
                     [inv setArgument:&size atIndex:i];
                 }
                 else if ([t_str hasPrefix:@"{NSPoint"])
                 {
-                    NSPoint point = [(NSValue *)arg pointValue];
+                    NSPoint point = [(NSValue *)arg CGPointValue];
                     [inv setArgument:&point atIndex:i];
                 }
             }
@@ -611,17 +617,17 @@ int luafunc_call(lua_State *L)
             if ([t hasPrefix:@"{NSRect"])
             {
                 NSRect *rect = (NSRect *)buffer;
-                [stack addObject:[NSValue valueWithRect:*rect]];
+                [stack addObject:[NSValue valueWithCGRect:*rect]];
             }
             else if ([t hasPrefix:@"{NSSize"])
             {
                 NSSize *size = (NSSize *)buffer;
-                [stack addObject:[NSValue valueWithSize:*size]];
+                [stack addObject:[NSValue valueWithCGSize:*size]];
             }
             else if ([t hasPrefix:@"{CGPoint"])
             {
                 NSPoint *size = (NSPoint *)buffer;
-                [stack addObject:[NSValue valueWithPoint:*size]];
+                [stack addObject:[NSValue valueWithCGPoint:*size]];
             }
         }
             break;

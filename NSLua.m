@@ -26,11 +26,13 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
 
 #pragma mark - NSObject
 
-- (id)init
+- (id)init:(lua_State*)l
 {
 	if (self = [super init])
 	{
-        L = luaL_newstate();
+        if(l == nil)
+            l = luaL_newstate();
+        L = l;
         luaL_openlibs(L);
         lua_newtable(L);
         
