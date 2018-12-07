@@ -12,8 +12,8 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-#import "lua/lua.h"
-#import "lua/lauxlib.h"
+#import "lua.h"
+#import "lauxlib.h"
 
 #ifdef __cplusplus
 }

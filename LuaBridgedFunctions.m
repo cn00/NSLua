@@ -11,9 +11,10 @@
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
 
+
 #define CNVBUF(type) type x = *(type*)buffer
 
-#define DEBUG_LUA_BRIDGE 0
+#define DEBUG_LUA_BRIDGE 1
 #if DEBUG_LUA_BRIDGE
 #define DebugLog(...) NSLog(__VA_ARGS__)
 #else
@@ -24,14 +25,10 @@
 
 #pragma mark - Helper Functions
 
-#define NSPoint CGPoint
-#define NSRect CGRect
-#define NSSize CGSize
-//#define NSValue CGValue
 
 bool to_lua(lua_State *L, id obj, bool dowrap)
 {
-    DebugLog(@"Sending %@ [%@] to Lua", obj, [obj class]);
+    //DebugLog(@"[App][LUA][ObjC] pass [%@] class:[%@] to Lua", obj, [obj class]);
     if (obj == nil)
     {
         lua_pushnil(L);
@@ -77,8 +74,7 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
         lua_getglobal(L, "wrap");
         lua_pushlightuserdata(L, (__bridge void*)obj);
         lua_pcall(L, 1, 1, 0); /* The thing is now on the stack */
-        if (IsNSValueType(obj, NSPoint)) {
-//            obj.pointValue.x
+        if (IsNSValueType(obj, CGPoint)) {
             lua_pushstring(L, "x");
             lua_pushnumber(L, [obj CGPointValue].x);
             lua_settable(L, -3);
@@ -86,9 +82,9 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             lua_pushnumber(L, [obj CGPointValue].y);
             lua_settable(L, -3);
             lua_pushstring(L, "Class");
-            lua_pushstring(L, "NSPoint");
+            lua_pushstring(L, "CGPoint");
             lua_settable(L, -3);
-        } else if (IsNSValueType(obj, NSRect)) {
+        } else if (IsNSValueType(obj, CGRect)) {
             lua_pushstring(L, "origin");
             lua_newtable(L);
             {
@@ -112,7 +108,7 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             }
             lua_settable(L, -3);
             lua_pushstring(L, "Class");
-            lua_pushstring(L, "NSRect");
+            lua_pushstring(L, "CGRect");
             lua_settable(L, -3);
         }
     }
@@ -125,7 +121,7 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             lua_pushlightuserdata(L, (__bridge void*)obj);
             if(lua_pcall(L, 1, 1, 0) != LUA_OK)
             {
-                NSLog(@"Error running specified lua function wrap");
+                DebugLog(@"[App][LUA][ObjC] Error running specified lua function wrap");
             }
             
             // We don't pop the data! We simply leave it there for the function to read as its param
@@ -251,18 +247,19 @@ id from_lua(lua_State *L, int i)
 
 #pragma mark - Lua Registerd Functions
 
-
 int luafunc_getclass(lua_State *L)
 {
     const char *classname = lua_tostring(L, -1);
     id cls = NSClassFromString([NSString stringWithUTF8String:classname]);
+    int n = 0;
     if (cls) {
-        DebugLog(@"Class: %s = %@", classname, cls);
         lua_pushlightuserdata(L, (__bridge void *)(cls));
-        return 1;
+        n = 1;
     } else {
-        return 0;
+        n = 0;
     }
+    DebugLog(@"[App][LUA][ObjC] Class: %s = %@", classname, cls);
+    return n;
 }
 
 int luafunc_hasmethod(lua_State *L)
@@ -270,10 +267,9 @@ int luafunc_hasmethod(lua_State *L)
     id target = from_lua(L, 1);
     const char* message = luaL_checkstring(L, 2);
     SEL sel = NSSelectorFromString([NSString stringWithUTF8String:message]);
-    DebugLog(@"Does %@  have a method called %s?", target, message);
 
     NSMethodSignature *sig = [target methodSignatureForSelector:sel];
-    DebugLog(sig ? @"Yes" : @"No");
+    DebugLog(@"[App][LUA][ObjC] %@: method:[%s] sign:[%@] in [%@]", (sig ? @"Yes" : @"No"), message, sig, target);
     lua_pushboolean(L, sig ? TRUE : FALSE);
     return 1;
 }
@@ -283,17 +279,20 @@ int luafunc_getproperty(lua_State *L)
     id target = from_lua(L, 1);
     const char* propname = luaL_checkstring(L, 2);
     id r;
-    DebugLog(@"Does %@  have a property called %s?", target, propname);
-//    @try {
+    int lr = 0;
+    //DebugLog(@"[App][LUA][ObjC] Does %@  have a property called %s?", target, propname);
+    @try {
         r = [target valueForKey:[NSString stringWithUTF8String:propname]];
-//    }
-//    @catch (NSException *exception) {
-//        DebugLog(@"%@ doesn't have a property called %s", target, propname);
-//        return 0;
-//    }
-    DebugLog(@"Yes!");
-    to_lua(L, r, true);
-    return 1;
+        lr = 1;
+    }
+    @catch (NSException *exception) {
+        //DebugLog(@"[App][LUA][ObjC] %@ doesn't have a property called %s", target, propname);
+        lr = 0;
+    }
+    DebugLog(@"[App][LUA][ObjC] %@: property:[%s] id:[%@] in [%@]", (r ? @"Yes" : @"No"), propname, r, target);
+    if(lr == 1)
+        to_lua(L, r, true);
+    return lr;
 }
 
 int luafunc_classof(lua_State *L)
@@ -324,10 +323,10 @@ int luafunc_call(lua_State *L)
     
     
     NSString *message = (NSString *)[stack lastObject];
-    NSLog(@"message was %@", message);
+    //DebugLog(@"[App][LUA][ObjC] message was %@", message);
     [stack removeLastObject];
     id target = [stack lastObject];
-    NSLog(@"target was %@", target);
+    DebugLog(@"[App][LUA][ObjC] msg:[%@] for target:[%@]", message, target);
     [stack removeLastObject];
     
     SEL sel = NSSelectorFromString(message);
@@ -336,12 +335,12 @@ int luafunc_call(lua_State *L)
     NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
     [inv retainArguments];
     NSUInteger numarg = [sig numberOfArguments];
-    //    NSLog(@"Number of arguments = %d", numarg);
+    //DebugLog(@"[App][LUA][ObjC] Number of arguments = %d", numarg);
     
     for (int i = 2; i < numarg; i++)
     {
         const char *t = [sig getArgumentTypeAtIndex:i];
-        //        NSLog(@"arg %d: %s", i, t);
+        //DebugLog(@"[App][LUA][ObjC] arg %d: %s", i, t);
         id arg = [stack lastObject];
         [stack removeLastObject];
         
@@ -453,19 +452,19 @@ int luafunc_call(lua_State *L)
             case '{': // {name=type...} A structure
             {
                 NSString *t_str = [NSString stringWithUTF8String:t];
-                if ([t_str hasPrefix:@"{NSRect"])
+                if ([t_str hasPrefix:@"{CGRect"])
                 {
-                    NSRect rect = [(NSValue *)arg CGRectValue];
+                    CGRect rect = [(NSValue *)arg CGRectValue];
                     [inv setArgument:&rect atIndex:i];
                 }
-                else if ([t_str hasPrefix:@"{NSSize"])
+                else if ([t_str hasPrefix:@"{CGSize"])
                 {
-                    NSSize size = [(NSValue *)arg CGSizeValue];
+                    CGSize size = [(NSValue *)arg CGSizeValue];
                     [inv setArgument:&size atIndex:i];
                 }
-                else if ([t_str hasPrefix:@"{NSPoint"])
+                else if ([t_str hasPrefix:@"{CGPoint"])
                 {
-                    NSPoint point = [(NSValue *)arg CGPointValue];
+                    CGPoint point = [(NSValue *)arg CGPointValue];
                     [inv setArgument:&point atIndex:i];
                 }
             }
@@ -474,7 +473,7 @@ int luafunc_call(lua_State *L)
             case 'v': // A void
             case ':': // A method selector (SEL)
             default:
-                NSLog(@"%s: Not implemented", t);
+                DebugLog(@"[App][LUA][ObjC] %s: Not implemented", t);
                 break;
         }
     }
@@ -484,14 +483,15 @@ int luafunc_call(lua_State *L)
     [inv invoke];
     
     const char *rettype = [sig methodReturnType];
-    //    NSLog(@"[%@ %@] ret type = %s", target, message, rettype);
+    //DebugLog(@"[App][LUA][ObjC] [%@ %@] ret type = %s", target, message, rettype);
     void *buffer = NULL;
     if (rettype[0] != 'v')
-    { // don't get return value from void function
+    {
+        // don't get return value from void function
         NSUInteger len = [[inv methodSignature] methodReturnLength];
         buffer = malloc(len);
         [inv getReturnValue:buffer];
-        //        NSLog(@"ret = %c", *(unichar*)buffer);
+        //DebugLog(@"[App][LUA][ObjC] ret = %c", *(unichar*)buffer);
     }
     
     
@@ -586,10 +586,10 @@ int luafunc_call(lua_State *L)
         case '#': // A class object (Class)
         {
             id x = (__bridge id)*((void **)buffer);
-            //            NSLog(@"stack %@", stack);
+            //            DebugLog(@"[App][LUA][ObjC] stack %@", stack);
             if (x)
             {
-                //                NSLog(@"x %@", x);
+                //                DebugLog(@"[App][LUA][ObjC] x %@", x);
                 [stack addObject:x];
             }
             else
@@ -614,19 +614,19 @@ int luafunc_call(lua_State *L)
         {
             NSString *t = [NSString stringWithUTF8String:rettype];
             
-            if ([t hasPrefix:@"{NSRect"])
+            if ([t hasPrefix:@"{CGRect"])
             {
-                NSRect *rect = (NSRect *)buffer;
+                CGRect *rect = (CGRect *)buffer;
                 [stack addObject:[NSValue valueWithCGRect:*rect]];
             }
-            else if ([t hasPrefix:@"{NSSize"])
+            else if ([t hasPrefix:@"{CGSize"])
             {
-                NSSize *size = (NSSize *)buffer;
+                CGSize *size = (CGSize *)buffer;
                 [stack addObject:[NSValue valueWithCGSize:*size]];
             }
             else if ([t hasPrefix:@"{CGPoint"])
             {
-                NSPoint *size = (NSPoint *)buffer;
+                CGPoint *size = (CGPoint *)buffer;
                 [stack addObject:[NSValue valueWithCGPoint:*size]];
             }
         }
@@ -634,7 +634,7 @@ int luafunc_call(lua_State *L)
             
         case ':': // A method selector (SEL)
         default:
-            NSLog(@"%s: Not implemented", rettype);
+            DebugLog(@"[App][Lua][ObjC] %s: Not implemented", rettype);
             [stack addObject:[NSNull null]];
             break;
     }

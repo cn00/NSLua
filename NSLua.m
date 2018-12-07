@@ -9,6 +9,8 @@
 #import "LuaBridgedFunctions.h"
 #import "NSLua.h"
 
+#include "BLGameSdk.h"
+
 #define ADDMETHOD(name) \
 (lua_pushstring(L, #name), \
 lua_pushcfunction(L, luafunc_ ## name), \
@@ -26,8 +28,25 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
 
 #pragma mark - NSObject
 
+void get_game_sdk()
+{
+//    [
+     [BLGameSdk defaultGameSdk]
+//     initWithGameid:@"85"
+//                                          cpId:@"2"
+//                                      serverid:@"159"
+//                                        appKey:@"bcf9f03f94234804a2aa11f6c9f4ccf0"
+//                                    sandboxKey:@"abc123"
+//                                      delegate:nil
+//     ]
+    ;
+}
+
 - (id)init:(lua_State*)l
 {
+    get_game_sdk();
+    
+    //NSURL* url = [NSURL fileURLWithPath:@""];
 	if (self = [super init])
 	{
         if(l == nil)
@@ -43,8 +62,8 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
         ADDMETHOD(classof);
         
         lua_setglobal(L, "objc");
-        NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-        NSString *path = [bundle pathForResource:@"LuaBridge" ofType:@"lua"];
+        //NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+        NSString *path = [[NSBundle mainBundle] pathForResource:@"LuaBridge" ofType:@"lua"];
         if (luaL_dofile(L, [path UTF8String]))
         {
             const char *err = lua_tostring(L, -1);
@@ -186,3 +205,9 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
 
 
 @end
+
+int nslua_init(lua_State *L)
+{
+    id i = [[NSLua sharedLua] init:L];
+    return 1;
+}

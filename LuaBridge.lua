@@ -50,6 +50,8 @@ local object_mt ={
       p = { name = inKey, target = inObject }
       setmetatable(p, method_mt)
       return p
+    else
+      print("[objc]" .. tostring(inObject) .. " donot have " .. inKey)
     end
   end,
   __newindex =  function(inObject, inKey, inValue)
@@ -90,5 +92,6 @@ function getUnknownVariable(tbl, key)
     end
 end
 
-
-setmetatable(_G, {__index=getUnknownVariable})
+OC = _G.OC or {}
+_G.OC = OC
+setmetatable(OC, {__index=getUnknownVariable})
