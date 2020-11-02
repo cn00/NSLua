@@ -35,3 +35,6 @@ int luafunc_getclass(lua_State *L);
 int luafunc_hasmethod(lua_State *L);
 int luafunc_getproperty(lua_State *L);
 int luafunc_classof(lua_State *L);
+int luafunc_CGPointMake(lua_State *L);
+int luafunc_CGRectMake(lua_State *L);
+int luafunc_CGRectContainsPoint(lua_State *L);

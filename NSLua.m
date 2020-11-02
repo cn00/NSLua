@@ -9,6 +9,8 @@
 #import "LuaBridgedFunctions.h"
 #import "NSLua.h"
 
+#import "libs/BLGameSdk/BLGameSdkLib/include/BLGameSdk.h"
+
 #define ADDMETHOD(name) \
 (lua_pushstring(L, #name), \
 lua_pushcfunction(L, luafunc_ ## name), \
@@ -35,13 +37,16 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
         L = l;
         luaL_openlibs(L);
         lua_newtable(L);
-        
+
         ADDMETHOD(call);
         ADDMETHOD(hasmethod);
         ADDMETHOD(getproperty);
         ADDMETHOD(getclass);
         ADDMETHOD(classof);
-        
+		ADDMETHOD(CGPointMake);
+		ADDMETHOD(CGRectMake);
+		ADDMETHOD(CGRectContainsPoint);
+
         lua_setglobal(L, "objc");
         //NSBundle *bundle = [NSBundle bundleForClass:[self class]];
         NSString *path = [[NSBundle mainBundle] pathForResource:@"LuaBridge" ofType:@"lua"];

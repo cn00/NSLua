@@ -25,6 +25,7 @@
 
 #pragma mark - Helper Functions
 
+//extern "C" {
 
 bool to_lua(lua_State *L, id obj, bool dowrap)
 {
@@ -668,4 +669,75 @@ int luafunc_call(lua_State *L)
     to_lua(L, obj, false);
     
     return 1;
+}
+
+int luafunc_CGPointMake(lua_State *L){
+	CGFloat x = luaL_checknumber(L, 1);
+	CGFloat y = luaL_checknumber(L, 2);
+	CGPoint p = CGPointMake(x, y);
+
+	lua_newtable(L);
+	lua_pushstring(L, "x");
+	lua_pushnumber(L, x);
+	lua_rawset( L,-3 );
+	lua_pushstring(L, "y");
+	lua_pushnumber(L, y);
+	lua_rawset(L, -3);
+
+	return 1;
+}
+
+int luafunc_CGRectMake(lua_State *L){
+	CGFloat x = luaL_checknumber(L, 1);
+	CGFloat y = luaL_checknumber(L, 2);
+	CGFloat w = luaL_checknumber(L, 3);
+	CGFloat h = luaL_checknumber(L, 4);
+	CGRect p = CGRectMake(x, y, w, h);
+
+	lua_newtable(L);
+	lua_pushstring(L, "x");
+	lua_pushnumber(L, x);
+	lua_rawset( L,-3 );
+	lua_pushstring(L, "y");
+	lua_pushnumber(L, y);
+	lua_rawset(L, -3);
+	lua_pushstring(L, "w");
+	lua_pushnumber(L, w);
+	lua_rawset( L,-3 );
+	lua_pushstring(L, "h");
+	lua_pushnumber(L, h);
+	lua_rawset(L, -3);
+
+	return 1;
+}
+
+CGPoint GetCGPointAt(lua_State *L, int idx){
+	CGFloat px, py;
+	lua_pushstring(L, "x");lua_gettable(L,idx);px = luaL_checknumber(L, -1);lua_pop(L, 1);
+	lua_pushstring(L, "y");lua_gettable(L,idx);py = luaL_checknumber(L, -1);lua_pop(L, 1);
+	CGPoint p = CGPointMake(px, py);
+	return p;
+}
+
+CGRect GetCGRectAt(lua_State *L, int idx){
+	CGFloat x, y, w, h;
+	lua_pushstring(L, "x");lua_gettable(L,idx);x = luaL_checknumber(L, -1);lua_pop(L, 1);
+	lua_pushstring(L, "y");lua_gettable(L,idx);y = luaL_checknumber(L, -1);lua_pop(L, 1);
+	lua_pushstring(L, "w");lua_gettable(L,idx);w = luaL_checknumber(L, -1);lua_pop(L, 1);
+	lua_pushstring(L, "h");lua_gettable(L,idx);h = luaL_checknumber(L, -1);lua_pop(L, 1);
+	CGRect rect = CGRectMake(x, y, w, h);
+	return rect;
+}
+int luafunc_CGRectContainsPoint(lua_State *L){
+	bool ok = NO;
+	if(!lua_istable(L, 1))
+		return 0;
+
+	CGRect  rect = GetCGRectAt(L,  1);
+	CGPoint p    = GetCGPointAt(L, 2);
+
+	ok = CGRectContainsPoint(rect, p);
+	lua_pushboolean(L, ok);
+
+	return 1;
 }
