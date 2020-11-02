@@ -1,0 +1,58 @@
+# Sets the minimum version of CMake required to build the native
+# library. You should either keep the default value or only pass a
+# value of 3.4.0 or lower.
+# by huzongyao
+
+cmake_minimum_required(VERSION 3.0)
+
+option (BUILD_SHARED_LIB "compatible format" ON )
+
+macro(source_group_by_dir proj_dir source_files)
+    if(MSVC OR APPLE)
+        get_filename_component(sgbd_cur_dir ${proj_dir} ABSOLUTE)
+        foreach(sgbd_file ${${source_files}})
+            get_filename_component(sgbd_abs_file ${sgbd_file} ABSOLUTE)
+            file(RELATIVE_PATH sgbd_fpath ${sgbd_cur_dir} ${sgbd_abs_file})
+            string(REGEX REPLACE "\(.*\)/.*" \\1 sgbd_group_name ${sgbd_fpath})
+            string(COMPARE EQUAL ${sgbd_fpath} ${sgbd_group_name} sgbd_nogroup)
+            string(REPLACE "/" "\\" sgbd_group_name ${sgbd_group_name})
+            if(sgbd_nogroup)
+                set(sgbd_group_name "\\")
+            endif(sgbd_nogroup)
+            source_group(${sgbd_group_name} FILES ${sgbd_file})
+        endforeach(sgbd_file)
+    endif(MSVC OR APPLE)
+endmacro(source_group_by_dir)
+
+
+# Creates and names a library, sets it as either STATIC
+# or SHARED, and provides the relative paths to its source code.
+# You can define multiple libraries, and CMake builds it for you.
+# Gradle automatically packages shared libraries with your APK.
+file(GLOB_RECURSE NSLUA_SRCS 
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.m
+)
+# message(stats "${NSLUA_SRCS}")
+
+message("CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lua/src
+)
+
+link_directories(
+    ${CMAKE_BINARY_DIR}/bin
+    ${CMAKE_BINARY_DIR}/lib
+)
+
+# if (BUILD_SHARED_LIB)
+    add_library(nslua SHARED ${NSLUA_SRCS})
+    # find_library(xlua lua)
+    target_link_libraries(nslua liblua)
+# else()
+#     add_library(nslua STATIC ${NSLUA_SRCS})
+# endif(BUILD_SHARED_LIB)
+source_group_by_dir(${CMAKE_CURRENT_SOURCE_DIR} NSLUA_SRCS)

@@ -20,6 +20,27 @@ function sendMesg (target, selector, ...)
    return objc.call(to_send)
 end
 
+-- Unwrap Objective-C Pointers
+function unwrap(obj)
+  if type(obj) == "table" then
+      if obj["WrappedObject"] ~= nil then
+        return obj["WrappedObject"]
+      end
+  end
+
+  return obj
+end
+
+-- Looks for Objective-C class if variable is not found in global space
+function getUnknownVariable(tbl, key)
+    local cls = objc.getclass(key)
+    if cls then
+        cls = wrap(cls)
+        tbl[key] = cls
+        return cls
+    end
+end
+
 local method_mt = {
   __tostring = function(o)
       return "<"..(o.name).." on "..tostring(o.target)..">"
@@ -69,27 +90,6 @@ function wrap(obj)
     o["Class"] = objc.classof(obj);
     setmetatable(o, object_mt)
     return o
-end
-
--- Unwrap Objective-C Pointers
-function unwrap(obj)
-  if type(obj) == "table" then
-      if obj["WrappedObject"] ~= nil then
-        return obj["WrappedObject"]
-      end
-  end
-
-  return obj
-end
-
--- Looks for Objective-C class if variable is not found in global space
-function getUnknownVariable(tbl, key)
-    local cls = objc.getclass(key)
-    if cls then
-        cls = wrap(cls)
-        tbl[key] = cls
-        return cls
-    end
 end
 
 OC = _G.OC or {}

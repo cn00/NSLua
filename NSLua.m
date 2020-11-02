@@ -9,8 +9,6 @@
 #import "LuaBridgedFunctions.h"
 #import "NSLua.h"
 
-#include "BLGameSdk.h"
-
 #define ADDMETHOD(name) \
 (lua_pushstring(L, #name), \
 lua_pushcfunction(L, luafunc_ ## name), \
@@ -28,25 +26,8 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(NSLua,sharedLua)
 
 #pragma mark - NSObject
 
-void get_game_sdk()
-{
-//    [
-     [BLGameSdk defaultGameSdk]
-//     initWithGameid:@"85"
-//                                          cpId:@"2"
-//                                      serverid:@"159"
-//                                        appKey:@"bcf9f03f94234804a2aa11f6c9f4ccf0"
-//                                    sandboxKey:@"abc123"
-//                                      delegate:nil
-//     ]
-    ;
-}
-
 - (id)init:(lua_State*)l
 {
-    get_game_sdk();
-    
-    //NSURL* url = [NSURL fileURLWithPath:@""];
 	if (self = [super init])
 	{
         if(l == nil)
@@ -72,6 +53,7 @@ void get_game_sdk()
         
         lua_settop(L, 0);
 	}
+	NSLog(@"nslua init ok");
 
 	return self;
 }
@@ -206,8 +188,12 @@ void get_game_sdk()
 
 @end
 
-int nslua_init(lua_State *L)
+extern int luaopen_nslua(lua_State *L)
 {
+	NSURL*    url = [NSURL fileURLWithPath:@"LuaBridge.lua"];
+	NSNumber*  num = [NSNumber numberWithFloat:(123.456)];
+	NSPoint p = CGPointMake(1,2);
+	NSLog(@"luaopen_nslua %@", url);
     id i = [[NSLua sharedLua] init:L];
-    return 1;
+    return 0;
 }
