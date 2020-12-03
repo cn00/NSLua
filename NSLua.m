@@ -9,8 +9,6 @@
 #import "LuaBridgedFunctions.h"
 #import "NSLua.h"
 
-#import "libs/BLGameSdk/BLGameSdkLib/include/BLGameSdk.h"
-
 #define ADDMETHOD(name) \
 (lua_pushstring(L, #name), \
 lua_pushcfunction(L, luafunc_ ## name), \

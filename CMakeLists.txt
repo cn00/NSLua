@@ -65,8 +65,8 @@ link_directories(
 	find_library(IOKit IOKit)
     find_library(CoreFoundation CoreFoundation)
     target_link_libraries(nslua 
-        ${CoreFoundation} 
-        ${IOKit} 
+        # ${CoreFoundation} 
+        # ${IOKit} 
         ${ObjC}
     )
 
@@ -78,3 +78,4 @@ link_directories(
 #     add_library(nslua STATIC ${NSLUA_SRCS})
 # endif(BUILD_SHARED_LIB)
 source_group_by_dir(${CMAKE_CURRENT_SOURCE_DIR} NSLUA_SRCS)
+install_library(nslua)
