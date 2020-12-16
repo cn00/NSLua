@@ -78,7 +78,7 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
         lua_pushlightuserdata(L, (__bridge void*)obj);
         lua_pcall(L, 1, 1, 0); /* The thing is now on the stack */
         if (IsNSValueType(obj, CGPoint)) {
-			CGPoint* objp = (CGPoint*)(&obj);
+			CGPoint* objp = (__bridge CGPoint *)(obj);// (CGPoint*)(&obj);
             lua_pushstring(L, "x");
             lua_pushnumber(L, objp->x);
             lua_settable(L, -3);
@@ -89,7 +89,7 @@ bool to_lua(lua_State *L, id obj, bool dowrap)
             lua_pushstring(L, "CGPoint");
             lua_settable(L, -3);
         } else if (IsNSValueType(obj, CGRect)) {
-			CGRect* objp = (CGRect*)(&obj);
+			CGRect* objp = (__bridge CGRect*)(obj);
             lua_pushstring(L, "origin");
             lua_newtable(L);
             {
@@ -255,7 +255,7 @@ int luafunc_getstruct(lua_State *L, const char *structname)
 {
 	if (strcmp(structname, "CGPoint") == 0) {
 		CGPoint p = CGPointMake(0, 0);
-		lua_pushlightuserdata(L, (__bridge void *)(&p));
+		lua_pushlightuserdata(L, (void *)(&p));
 		return 1;
 	}
 	return 0;
@@ -479,17 +479,17 @@ int luafunc_call(lua_State *L)
                 NSString *t_str = [NSString stringWithUTF8String:t];
                 if ([t_str hasPrefix:@"{CGRect"])
                 {
-                    CGRect* rect = (CGRect*)(&arg);//[(NSValue *)arg CGRectValue];
+                    CGRect* rect = (__bridge CGRect*)(arg);//[(NSValue *)arg CGRectValue];
                     [inv setArgument:rect atIndex:i];
                 }
                 else if ([t_str hasPrefix:@"{CGSize"])
                 {
-                    CGSize* size = (CGSize*)(&arg);//[(NSValue *)arg CGSizeValue];
+                    CGSize* size = (__bridge CGSize*)(arg);//[(NSValue *)arg CGSizeValue];
                     [inv setArgument:size atIndex:i];
                 }
                 else if ([t_str hasPrefix:@"{CGPoint"])
                 {
-                    CGPoint* point = (CGPoint*)(&arg);//[(NSValue *)arg CGPointValue];
+                    CGPoint* point = (__bridge CGPoint*)(arg);//[(NSValue *)arg CGPointValue];
                     [inv setArgument:point atIndex:i];
                 }
                 break;
@@ -641,17 +641,17 @@ int luafunc_call(lua_State *L)
             if ([t hasPrefix:@"{CGRect"])
             {
                 CGRect *rect = (CGRect *)buffer;
-                [stack addObject:[NSValue valueWithCGRect:*rect]];
+			[stack addObject:[NSValue valueWithNonretainedObject:(__bridge id _Nullable)(rect)]];
             }
             else if ([t hasPrefix:@"{CGSize"])
             {
                 CGSize *size = (CGSize *)buffer;
-                [stack addObject:[NSValue valueWithCGSize:*size]];
+				[stack addObject:[NSValue valueWithNonretainedObject:CFBridgingRelease(size)]];
             }
             else if ([t hasPrefix:@"{CGPoint"])
             {
                 CGPoint *size = (CGPoint *)buffer;
-                [stack addObject:[NSValue valueWithCGPoint:*size]];
+				[stack addObject:[NSValue valueWithNonretainedObject:(__bridge id _Nullable)(size)]];
             }
         }
             break;

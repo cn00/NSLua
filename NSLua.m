@@ -195,7 +195,7 @@ extern int luaopen_nslua(lua_State *L)
 {
 	NSURL*    url = [NSURL fileURLWithPath:@"LuaBridge.lua"];
 	NSNumber*  num = [NSNumber numberWithFloat:(123.456)];
-	NSPoint p = CGPointMake(1,2);
+//	NSPoint* p = CGPointMake(1,2);
 	NSLog(@"luaopen_nslua %@", url);
     id i = [[NSLua sharedLua] init:L];
     return 0;

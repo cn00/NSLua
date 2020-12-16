@@ -32,7 +32,6 @@ include_directories(
 link_directories(
     ${CMAKE_BINARY_DIR}/bin
     ${CMAKE_BINARY_DIR}/lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/BLGameSdk/BLGameSdkLib
 )
 
 # if (BUILD_SHARED_LIB)
@@ -54,10 +53,6 @@ link_directories(
         # ${IOKit} 
         ${ObjC}
     )
-
-    if(IOS)
-        target_link_libraries(nslua BLGameSdkCenter)
-    endif(IOS)
     
 # else()
 #     add_library(nslua STATIC ${NSLUA_SRCS})
